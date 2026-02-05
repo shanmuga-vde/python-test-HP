@@ -15,7 +15,7 @@ def get_hospitals_sets(input_metadata):
 		theme = item.get("theme")
 		if theme and any("Hospitals" in t for t in theme):
 			hospital_sets.append(item)
-	return(hospital_sets)
+	return hospital_sets
 	
 def main():
 	input_metadata = get_metadata()
