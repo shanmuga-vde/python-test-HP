@@ -1,0 +1,46 @@
+import requests 
+import os
+
+metastore_url = "https://data.cms.gov/provider-data/api/1/metastore/schemas/dataset/items"
+output_dir = "output"
+
+def get_metadata():
+	resp = requests.get(metastore_url)
+	resp.raise_for_status()
+	return resp.json()
+
+def get_hospitals_sets(input_metadata):
+	hospital_sets = []
+	for item in input_metadata:
+		theme = item.get("theme")
+		if theme and any("Hospitals" in t for t in theme):
+			hospital_sets.append(item)
+	return(hospital_sets)
+	
+def main():
+	input_metadata = get_metadata()
+	filter_hospitals = get_hospitals_sets(input_metadata)
+	print(f"Number of hospital theme datasets: {len(filter_hospitals)}")
+	
+	for s in filter_hospitals:
+		title = s.get("title", "NA").replace(" ", "_")
+		identifier = s.get("identifier", "NA")
+		distribution = s.get("distribution", [])
+		
+		for d in distribution:
+			csv_url = d.get("downloadURL")
+			media_type = d.get("mediaType")
+			if csv_url and media_type and "csv" in media_type.lower():
+				try:
+					csv_r = requests.get(csv_url)
+					csv_r.raise_for_status()
+					file_name = f"{output_dir}/{title}.csv"
+					with open(file_name, "wb") as f:
+						f.write(r.content)
+					print(f"Hospital Contents Saved to File: {file_name}")
+					break
+				except Exception as e:
+					print(Failed to download:", e)
+										
+if __name__ == "__main__":
+main()
